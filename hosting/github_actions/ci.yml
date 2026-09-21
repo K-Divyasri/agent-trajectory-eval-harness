@@ -18,9 +18,9 @@
 # no API key. This workflow needs no secrets.
 #
 # WHERE THIS FILE GOES: copy it to ".github/workflows/ci.yml" at the ROOT of
-# your repo (the repo root is the whole 38-agent-trajectory-eval-harness/
-# folder, the one that contains build_from_scratch/). GitHub only runs
-# workflow files that live under .github/workflows/.
+# your repo (the repo root, the folder that contains requirements.txt and
+# pyproject.toml). GitHub only runs workflow files that live under
+# .github/workflows/.
 
 # The name shown in the repo's "Actions" tab.
 name: CI
@@ -51,9 +51,9 @@ jobs:
         with:
           python-version: "3.12"
           # Cache pip downloads between runs so installs are faster. Point the
-          # cache at the requirements file, which lives inside build_from_scratch/.
+          # cache at the requirements file, which lives at the repo root.
           cache: pip
-          cache-dependency-path: build_from_scratch/requirements.txt
+          cache-dependency-path: requirements.txt
 
       # Step 3: install the project's dependencies. requirements.txt pulls in
       # pydantic, matplotlib, pytest, litellm, streamlit, and anthropic -- the
@@ -63,14 +63,12 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r build_from_scratch/requirements.txt
+          pip install -r requirements.txt
 
-      # Step 4: run the tests. pyproject.toml inside build_from_scratch/ sets
-      # testpaths = ["tests"], so a bare "pytest" from that folder finds and
-      # runs the whole suite. "working-directory" moves us into
-      # build_from_scratch first. The step passes only if all 44 tests pass.
+      # Step 4: run the tests. pyproject.toml at the repo root sets
+      # testpaths = ["tests"], so a bare "pytest" from the repo root finds and
+      # runs the whole suite. The step passes only if all 44 tests pass.
       - name: Run tests
-        working-directory: build_from_scratch
         run: pytest
 
       # Step 5: the SHIP GATE. This is the money shot.
@@ -80,5 +78,4 @@ jobs:
       # agent's routing or introduced a regression, this exits non-zero and
       # the whole job goes red -- blocking the merge. Fully offline, no key.
       - name: Ship gate (fail the build if agent quality regresses)
-        working-directory: build_from_scratch
         run: python -m trajeval gate --config good

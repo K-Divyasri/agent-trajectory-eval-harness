@@ -2,7 +2,7 @@
 
 This is the project's "definition of done." Walk it top to bottom. Don't tick a box you
 haven't actually verified by running the command — "should work" isn't the same as "works."
-Commands assume you're inside `build_from_scratch/` unless noted.
+Commands assume you're at the repo root unless noted.
 
 ## Runs locally
 
@@ -14,8 +14,8 @@ Commands assume you're inside `build_from_scratch/` unless noted.
 - [ ] The leaderboard looks right:
       `python -m trajeval compare` (expect `good` at 1.00 completion / 1.00 tool-F1 / 0.89
       efficiency; `wrong_tool`, `looping`, `gives_up`, `hallucinating` all visibly worse)
-- [ ] The Streamlit app runs and renders (from the **project root**):
-      `streamlit run build_from_scratch\web_app.py` — sidebar shows the 5 offline agents and a
+- [ ] The Streamlit app runs and renders (from the **repo root**):
+      `streamlit run web_app.py` — sidebar shows the 5 offline agents and a
       judge selector locked to `offline` (no key set); main panel shows 4 metric tiles and 9
       expandable transcripts.
 
@@ -30,7 +30,7 @@ Commands assume you're inside `build_from_scratch/` unless noted.
 
 ## Tests pass
 
-- [ ] `pytest` run from inside `build_from_scratch/` is all green — 44 tests, all offline.
+- [ ] `pytest` run from the repo root is all green — 44 tests, all offline.
 - [ ] You ran it in the fresh venv, not just your everyday one, so you know
       `requirements.txt` is complete on its own.
 
@@ -63,8 +63,8 @@ Commands assume you're inside `build_from_scratch/` unless noted.
 - [ ] Repo created empty on github.com (no auto README/license), named
       `agent-trajectory-eval-harness`, public.
 - [ ] `git init` → `git add .` → `git commit` → `git branch -M main` →
-      `git remote add origin ...` → `git push -u origin main`, all from the **project root**
-      (the folder containing `build_from_scratch/`).
+      `git remote add origin ...` → `git push -u origin main`, all from the **repo root**
+      (the folder containing `hosting/`).
 - [ ] `.github/workflows/ci.yml` (copied from `hosting/github_actions/ci.yml`) is committed and
       pushed.
 - [ ] The Actions tab shows a completed run with a green checkmark. It's keyless — every step
@@ -77,7 +77,7 @@ Commands assume you're inside `build_from_scratch/` unless noted.
 ## Live dashboard is up
 
 - [ ] Deployed via Path A (Streamlit Community Cloud, main file path
-      `build_from_scratch/web_app.py`) **or** Path B (Hugging Face Spaces, Docker SDK +
+      `web_app.py`) **or** Path B (Hugging Face Spaces, Docker SDK +
       Streamlit template, `app.py` + `trajeval/` + `requirements.txt` at the Space root).
 - [ ] Open the live URL — sidebar lets you switch between the 5 offline agents, main panel
       updates the 4 metric tiles and the 9 transcripts. Judge selector shows only `offline`

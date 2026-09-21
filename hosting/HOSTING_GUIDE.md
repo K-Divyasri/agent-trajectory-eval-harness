@@ -8,7 +8,7 @@ RAG Evaluation Harness):
    that breaks the agent's tool routing, sends it into a retry loop, or drops its task-completion
    rate below the bar turns the build red. That's the whole point of this project existing: you
    can *prove* an agent's trajectory quality the same way you'd prove test coverage.
-2. **The Streamlit dashboard on a free live URL.** `build_from_scratch/web_app.py` — pick an
+2. **The Streamlit dashboard on a free live URL.** `web_app.py` — pick an
    agent, watch its transcripts, see the four metrics and the judge verdict per task. A live
    link a recruiter can click is what makes the project land.
 
@@ -24,12 +24,11 @@ in the host's secrets vault — **never** in the repo.
 
 ```
 38-agent-trajectory-eval-harness/     <- this whole folder becomes your GitHub repo
-├── build_from_scratch/               <- the real package lives here
-│   ├── trajeval/                     <- tools, agents, metrics, judge, harness, cli
-│   ├── web_app.py                    <- the Streamlit app -- this is what you deploy
-│   ├── requirements.txt              <- pydantic, matplotlib, pytest, litellm, streamlit, anthropic
-│   ├── tests/                        <- 44 offline tests
-│   └── pyproject.toml
+├── trajeval/                         <- tools, agents, metrics, judge, harness, cli
+├── web_app.py                        <- the Streamlit app -- this is what you deploy
+├── requirements.txt                  <- pydantic, matplotlib, pytest, litellm, streamlit, anthropic
+├── tests/                            <- 44 offline tests
+├── pyproject.toml
 ├── hosting/                          <- you are here
 │   ├── HOSTING_GUIDE.md
 │   ├── deploy_checklist.md
@@ -39,10 +38,10 @@ in the host's secrets vault — **never** in the repo.
 ```
 
 One thing follows from this, and it's simpler than project 10: **`web_app.py` already lives
-right next to the `trajeval/` package it imports**, both inside `build_from_scratch/`. Project
+right next to the `trajeval/` package it imports**, both at the repo root. Project
 10's dashboard lived in a separate `hosting/streamlit_app/` folder and had to walk up the
 directory tree (or have the package copied alongside it) to find its package. This app doesn't
-need any of that — point a host at `build_from_scratch/web_app.py` and Python's own import
+need any of that — point a host at `web_app.py` and Python's own import
 rules do the rest, because `trajeval/` is a plain sibling directory of the script being run.
 
 ---
@@ -72,7 +71,7 @@ git config --global user.email "mathuransada@gmail.com"
 
 This package reads API keys straight from environment variables (`os.environ.get(...)` in
 `trajeval/judge.py` and `trajeval/real_agent.py`) — there's no `.env` file or `python-dotenv`
-step baked into `build_from_scratch/`. That's actually the simplest possible secrets story:
+step baked into the repo. That's actually the simplest possible secrets story:
 **there is no secrets file to accidentally commit**, because there is no secrets file at all.
 Locally you export a key into your shell session for the session's lifetime; on a host, you set
 it in that host's secrets vault, which materializes it as an environment variable at runtime.
@@ -94,7 +93,7 @@ Secrets and machine junk stay out.**
 ### Make the repo and push
 
 Run these from the **project root** — the `38-agent-trajectory-eval-harness/` folder, the one
-with `build_from_scratch/` and this `hosting/` folder inside it:
+with this `hosting/` folder inside it:
 
 ```powershell
 cd ai\38-agent-trajectory-eval-harness
@@ -154,8 +153,8 @@ git push
 ```
 
 Open the repo's **Actions** tab to watch it run. The steps are: checkout → install Python →
-install `build_from_scratch/requirements.txt` → `pytest` (44 tests, run from inside
-`build_from_scratch/`) → **`python -m trajeval gate --config good`**. It's **entirely keyless**
+install `requirements.txt` → `pytest` (44 tests, run from the repo
+root) → **`python -m trajeval gate --config good`**. It's **entirely keyless**
 — every step runs offline, so nothing needs a secret. Green means all tests passed *and* the
 gate passed on GitHub's machine.
 
@@ -180,7 +179,7 @@ status badge**) and paste it at the top of your root `README.md`.
 
 ## Step 2 — Deploy the dashboard
 
-`build_from_scratch/web_app.py` is the whole deployed app — no separate copy, no second file to
+`web_app.py` is the whole deployed app — no separate copy, no second file to
 maintain. Streamlit Community Cloud is the simplest path because it can point directly at a file
 deep in your repo with zero copying; Hugging Face Spaces works too but needs one small
 adjustment because of a recent platform change (covered below).
@@ -194,18 +193,18 @@ automatically on every push. Docs: <https://docs.streamlit.io/deploy/streamlit-c
    repos.
 2. Click **Create app** → **Deploy a public app from GitHub**.
 3. **Repository:** `YOURNAME/agent-trajectory-eval-harness`. **Branch:** `main`.
-4. **Main file path:** `build_from_scratch/web_app.py`.
+4. **Main file path:** `web_app.py`.
 5. Click **Deploy**.
 
 That's the entire configuration. Two things make this work with no extra fiddling:
 
 - **Dependencies.** Community Cloud looks for a `requirements.txt` first in the same directory
-  as your main file, then at the repo root. `build_from_scratch/requirements.txt` is sitting
-  right there next to `web_app.py`, so it's picked up automatically — you don't need to point
-  at it explicitly or duplicate it at the repo root.
+  as your main file, then at the repo root. `requirements.txt` is sitting
+  right there next to `web_app.py` at the repo root, so it's picked up automatically — you
+  don't need to point at it explicitly.
 - **Imports.** The app's working directory on Community Cloud is always the repo root, but
   Python still puts the *script's own directory* on `sys.path` when it runs `web_app.py` — and
-  `trajeval/` is a plain sibling folder of `web_app.py` inside `build_from_scratch/`. So
+  `trajeval/` is a plain sibling folder of `web_app.py` at the repo root. So
   `from trajeval.agents import OFFLINE_AGENTS` (and the rest of `web_app.py`'s imports) resolve
   with no path hacking at all.
 
@@ -236,12 +235,12 @@ upload as the entry point must be named `app.py` at the Space's **root**, with t
 package sitting right next to it (same sibling-import logic as Path A — `app.py` needs
 `trajeval/` next door to import it). Using the **Files** tab → **Add file** → **Upload files**:
 
-- Upload `build_from_scratch/web_app.py`'s contents as a file named **`app.py`** at the Space
+- Upload `web_app.py`'s contents as a file named **`app.py`** at the Space
   root (open it locally, copy the contents, paste into a new `app.py` in the Space's web
   editor — or upload the file and rename it after).
-- Upload the whole `build_from_scratch/trajeval/` folder to the Space root, so it sits next to
+- Upload the whole `trajeval/` folder to the Space root, so it sits next to
   `app.py`.
-- Upload `build_from_scratch/requirements.txt` as `requirements.txt` at the Space root.
+- Upload `requirements.txt` as `requirements.txt` at the Space root.
 
 > You don't need `tests/`, `pyproject.toml`, the notebooks, or the labs on the Space — the
 > dashboard only imports the `trajeval` package.
@@ -335,11 +334,11 @@ threshold. Read the failed step's log; `format_scorecard`'s table is printed rig
 a real regression in agent behavior, that's the build correctly refusing to merge a worse agent.
 
 **The Streamlit Cloud build fails on an import of `trajeval`.** Double-check the main file path
-is exactly `build_from_scratch/web_app.py` (not a copy elsewhere) — the whole point of this
+is exactly `web_app.py` (not a copy elsewhere) — the whole point of this
 app's layout is that it needs nothing extra as long as that path is right.
 
 **The Space build fails on an import of `trajeval`.** On Path B, confirm `trajeval/` (the
-package folder, not the whole `build_from_scratch/` folder) is sitting at the Space root, right
+package folder, not the whole repo) is sitting at the Space root, right
 next to `app.py`. That sibling relationship is what makes the plain `import trajeval` work.
 
 **Authentication fails on push.** GitHub no longer accepts your account password in the
