@@ -1,0 +1,84 @@
+# GitHub Actions workflow for the Agent Trajectory Evaluation Harness.
+#
+# What this does: every push and pull request, GitHub spins up a fresh Linux
+# machine, installs Python and the project's dependencies, runs the 44 tests,
+# then runs the SHIP GATE. Pass -> green checkmark on the commit. Fail -> a
+# red X and a log to read. Free on public repos.
+#
+# The ship gate is the differentiator. `python -m trajeval gate --config good`
+# scores the GoodAgent over all 9 tasks with the offline judge and exits 0
+# when task_completion_rate, avg_tool_call_correctness, and avg_step_efficiency
+# are all at or above their thresholds -- non-zero otherwise. Because the
+# workflow runs it, an agent-routing regression (wrong tool picked, a retry
+# loop that never terminates, a dropped tool schema) turns the whole build red
+# on its own, the same day it's introduced -- not weeks later in a demo.
+#
+# Why it's safe to run in the cloud: everything here runs FULLY OFFLINE. The
+# five offline agents and the offline judge are pure Python -- no network call,
+# no API key. This workflow needs no secrets.
+#
+# WHERE THIS FILE GOES: copy it to ".github/workflows/ci.yml" at the ROOT of
+# your repo (the repo root is the whole 38-agent-trajectory-eval-harness/
+# folder, the one that contains build_from_scratch/). GitHub only runs
+# workflow files that live under .github/workflows/.
+
+# The name shown in the repo's "Actions" tab.
+name: CI
+
+# "on" decides WHEN this runs. Here: on every push, and on every pull request.
+on:
+  push:
+  pull_request:
+
+# A workflow is made of one or more "jobs". We have one job, called "test".
+jobs:
+  test:
+    # The kind of machine to run on. ubuntu-latest is a standard, free Linux box.
+    # The code is pure Python, so it passes on Linux even though you develop on Windows.
+    runs-on: ubuntu-latest
+
+    # "steps" run top to bottom on that machine.
+    steps:
+      # Step 1: download your repo's code onto the runner. Without this, the
+      # machine is empty and has nothing to test. "uses" pulls in a prebuilt,
+      # official action.
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      # Step 2: install Python. Pin a version so CI matches what you develop against.
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          # Cache pip downloads between runs so installs are faster. Point the
+          # cache at the requirements file, which lives inside build_from_scratch/.
+          cache: pip
+          cache-dependency-path: build_from_scratch/requirements.txt
+
+      # Step 3: install the project's dependencies. requirements.txt pulls in
+      # pydantic, matplotlib, pytest, litellm, streamlit, and anthropic -- the
+      # last three are only needed for the optional real-model paths and the
+      # web app, but installing them here costs nothing and keeps this one
+      # requirements file the single source of truth.
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r build_from_scratch/requirements.txt
+
+      # Step 4: run the tests. pyproject.toml inside build_from_scratch/ sets
+      # testpaths = ["tests"], so a bare "pytest" from that folder finds and
+      # runs the whole suite. "working-directory" moves us into
+      # build_from_scratch first. The step passes only if all 44 tests pass.
+      - name: Run tests
+        working-directory: build_from_scratch
+        run: pytest
+
+      # Step 5: the SHIP GATE. This is the money shot.
+      # `trajeval gate --config good` runs GoodAgent over all 9 tasks with the
+      # offline judge and exits 0 only if completion / tool-call-correctness /
+      # step-efficiency are all at or above the bar. If a change broke the
+      # agent's routing or introduced a regression, this exits non-zero and
+      # the whole job goes red -- blocking the merge. Fully offline, no key.
+      - name: Ship gate (fail the build if agent quality regresses)
+        working-directory: build_from_scratch
+        run: python -m trajeval gate --config good

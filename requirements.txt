@@ -1,0 +1,6 @@
+pydantic>=2
+matplotlib
+pytest
+litellm
+streamlit
+anthropic

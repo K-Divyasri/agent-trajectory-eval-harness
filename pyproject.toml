@@ -1,0 +1,28 @@
+[project]
+name = "trajeval"
+version = "0.1.0"
+description = "A from-scratch multi-turn agent trajectory evaluation harness: metrics, LLM-as-judge over full transcripts, scorecards, and a CI ship gate."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pydantic>=2.0",
+]
+
+[project.optional-dependencies]
+# Only needed when you run the --real agent or a real judge backend.
+real = ["litellm>=1.0", "anthropic>=0.113"]
+web = ["streamlit>=1.30", "matplotlib>=3.7"]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+trajeval = "trajeval.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["trajeval*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

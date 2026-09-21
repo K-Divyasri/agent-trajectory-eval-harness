@@ -1,0 +1,18 @@
+# Secrets -- never commit
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.benchmarks/
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+
+# Eval run history written via `trajeval run --history`
+*.jsonl
