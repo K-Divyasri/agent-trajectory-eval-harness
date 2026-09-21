@@ -15,7 +15,7 @@ Commands assume you're at the repo root unless noted.
       `python -m trajeval compare` (expect `good` at 1.00 completion / 1.00 tool-F1 / 0.89
       efficiency; `wrong_tool`, `looping`, `gives_up`, `hallucinating` all visibly worse)
 - [ ] The Streamlit app runs and renders (from the **repo root**):
-      `streamlit run web_app.py` — sidebar shows the 5 offline agents and a
+      `streamlit run web_app.py` - sidebar shows the 5 offline agents and a
       judge selector locked to `offline` (no key set); main panel shows 4 metric tiles and 9
       expandable transcripts.
 
@@ -30,7 +30,7 @@ Commands assume you're at the repo root unless noted.
 
 ## Tests pass
 
-- [ ] `pytest` run from the repo root is all green — 44 tests, all offline.
+- [ ] `pytest` run from the repo root is all green - 44 tests, all offline.
 - [ ] You ran it in the fresh venv, not just your everyday one, so you know
       `requirements.txt` is complete on its own.
 

@@ -8,7 +8,7 @@ RAG Evaluation Harness):
    that breaks the agent's tool routing, sends it into a retry loop, or drops its task-completion
    rate below the bar turns the build red. That's the whole point of this project existing: you
    can *prove* an agent's trajectory quality the same way you'd prove test coverage.
-2. **The Streamlit dashboard on a free live URL.** `web_app.py` — pick an
+2. **The Streamlit dashboard on a free live URL.** `web_app.py` - pick an
    agent, watch its transcripts, see the four metrics and the judge verdict per task. A live
    link a recruiter can click is what makes the project land.
 
@@ -41,7 +41,7 @@ One thing follows from this, and it's simpler than project 10: **`web_app.py` al
 right next to the `trajeval/` package it imports**, both at the repo root. Project
 10's dashboard lived in a separate `hosting/streamlit_app/` folder and had to walk up the
 directory tree (or have the package copied alongside it) to find its package. This app doesn't
-need any of that — point a host at `web_app.py` and Python's own import
+need any of that - point a host at `web_app.py` and Python's own import
 rules do the rest, because `trajeval/` is a plain sibling directory of the script being run.
 
 ---
@@ -179,7 +179,7 @@ status badge**) and paste it at the top of your root `README.md`.
 
 ## Step 2 — Deploy the dashboard
 
-`web_app.py` is the whole deployed app — no separate copy, no second file to
+`web_app.py` is the whole deployed app - no separate copy, no second file to
 maintain. Streamlit Community Cloud is the simplest path because it can point directly at a file
 deep in your repo with zero copying; Hugging Face Spaces works too but needs one small
 adjustment because of a recent platform change (covered below).
@@ -200,7 +200,7 @@ That's the entire configuration. Two things make this work with no extra fiddlin
 
 - **Dependencies.** Community Cloud looks for a `requirements.txt` first in the same directory
   as your main file, then at the repo root. `requirements.txt` is sitting
-  right there next to `web_app.py` at the repo root, so it's picked up automatically — you
+  right there next to `web_app.py` at the repo root, so it's picked up automatically - you
   don't need to point at it explicitly.
 - **Imports.** The app's working directory on Community Cloud is always the repo root, but
   Python still puts the *script's own directory* on `sys.path` when it runs `web_app.py` — and
@@ -334,7 +334,7 @@ threshold. Read the failed step's log; `format_scorecard`'s table is printed rig
 a real regression in agent behavior, that's the build correctly refusing to merge a worse agent.
 
 **The Streamlit Cloud build fails on an import of `trajeval`.** Double-check the main file path
-is exactly `web_app.py` (not a copy elsewhere) — the whole point of this
+is exactly `web_app.py` (not a copy elsewhere) - the whole point of this
 app's layout is that it needs nothing extra as long as that path is right.
 
 **The Space build fails on an import of `trajeval`.** On Path B, confirm `trajeval/` (the
